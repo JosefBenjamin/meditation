@@ -1,0 +1,1728 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Meditation Quiz — Island Prototype</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <script
+      src="https://unpkg.com/react@18.3.1/umd/react.development.js"
+      integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"
+      integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"
+      integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y"
+      crossorigin="anonymous"
+    ></script>
+
+    <style>
+      :root {
+        /* palettes */
+        --bg-oat: #f6f3ec;
+        --bg-oat-2: #efeae0;
+        --ink: #2b241e;
+        --ink-soft: #5b4f45;
+        --ink-mute: #8c8073;
+        --rule: #e5ded1;
+        --card: #fbf8f2;
+        --card-edge: #efe9db;
+
+        /* accents */
+        --sage: #8aa17a;
+        --sage-deep: #6f8862;
+        --sage-soft: #d9e2ce;
+        --lavender: #a8a0c5;
+        --lavender-deep: #8c83b0;
+        --lavender-soft: #e2deee;
+        --dawn: #8fa4be;
+        --dawn-deep: #6f88a7;
+        --dawn-soft: #dce4ef;
+        --amber: #d9a574;
+
+        /* active accent (set by JS) */
+        --accent: var(--sage);
+        --accent-deep: var(--sage-deep);
+        --accent-soft: var(--sage-soft);
+
+        --t: 600ms;
+        --ease: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      /* DUSK palette (applied on .dusk) */
+      .dusk {
+        --bg-oat: #20191b;
+        --bg-oat-2: #1a1416;
+        --ink: #eadfd2;
+        --ink-soft: #b8a9a0;
+        --ink-mute: #7f716a;
+        --rule: #352a2d;
+        --card: #281e21;
+        --card-edge: #342629;
+
+        --sage: #98b088;
+        --sage-deep: #b6c9a7;
+        --sage-soft: #3a4235;
+        --lavender: #b8addb;
+        --lavender-deep: #cec3ee;
+        --lavender-soft: #3a3448;
+        --dawn: #a4b8d1;
+        --dawn-deep: #c0d0e5;
+        --dawn-soft: #2e3642;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #0f0b0c;
+        color: var(--ink);
+        font-family: "Inter", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        min-height: 100vh;
+      }
+
+      /* ----- Stage chrome (not part of the island) ----- */
+      .chrome {
+        position: fixed;
+        top: 14px;
+        left: 14px;
+        right: 14px;
+        z-index: 40;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        pointer-events: none;
+      }
+      .chrome > * {
+        pointer-events: auto;
+      }
+      .chrome-label {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #a89a8c;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: rgba(20, 15, 13, 0.65);
+        backdrop-filter: blur(8px);
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .chrome-toggle {
+        display: inline-flex;
+        background: rgba(20, 15, 13, 0.65);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 999px;
+        padding: 4px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+      }
+      .chrome-toggle button {
+        appearance: none;
+        background: transparent;
+        color: #a89a8c;
+        border: 0;
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition:
+          color 0.2s ease,
+          background 0.2s ease;
+      }
+      .chrome-toggle button.on {
+        background: #eadfd2;
+        color: #2b241e;
+      }
+
+      /* ----- Two viewing modes ----- */
+      .mode-standalone,
+      .mode-host {
+        min-height: 100vh;
+        width: 100%;
+        transition: opacity 500ms ease;
+      }
+      .mode-standalone {
+        background: radial-gradient(
+          ellipse at 50% 20%,
+          #1a1416 0%,
+          #0f0b0c 70%
+        );
+        display: grid;
+        place-items: center;
+        padding: 120px 24px 80px;
+      }
+      .mode-host {
+        background: var(--bg-oat);
+      }
+
+      /* ----- The ISLAND card ----- */
+      .island {
+        width: 100%;
+        max-width: 560px;
+        background: var(--card);
+        border-radius: 32px;
+        padding: 56px 48px 52px;
+        position: relative;
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.5) inset,
+          0 40px 80px -40px rgba(40, 25, 15, 0.18),
+          0 12px 28px -18px rgba(40, 25, 15, 0.12);
+        border: 1px solid var(--card-edge);
+        overflow: hidden;
+      }
+      .dusk .island {
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.04) inset,
+          0 40px 80px -40px rgba(0, 0, 0, 0.6),
+          0 12px 28px -18px rgba(0, 0, 0, 0.5);
+      }
+      .mode-standalone .island {
+        max-width: 600px;
+      }
+
+      /* breathing motif */
+      .breathe-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 28px;
+      }
+      .breathe {
+        animation: breathe 8s ease-in-out infinite;
+        transform-origin: center;
+        color: var(--accent);
+      }
+      @keyframes breathe {
+        0%,
+        100% {
+          transform: scale(0.98);
+          opacity: 0.9;
+        }
+        50% {
+          transform: scale(1.02);
+          opacity: 1;
+        }
+      }
+      .breathe-small {
+        animation: breathe 8s ease-in-out infinite;
+        transform-origin: center;
+        color: var(--accent);
+      }
+
+      /* wave-specific peaceful animation — slow rise/fall + drift */
+      .wave-motif {
+        animation: waveFloat 9s ease-in-out infinite;
+        transform-origin: center;
+        color: var(--accent);
+        overflow: visible;
+      }
+      @keyframes waveFloat {
+        0%,
+        100% {
+          transform: translateY(2px) scale(0.99);
+          opacity: 0.9;
+        }
+        50% {
+          transform: translateY(-2px) scale(1.01);
+          opacity: 1;
+        }
+      }
+      .wave-path-1 {
+        animation: waveDrift1 11s ease-in-out infinite;
+      }
+      .wave-path-2 {
+        animation: waveDrift2 13s ease-in-out infinite;
+      }
+      @keyframes waveDrift1 {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        50% {
+          transform: translateX(-14px);
+        }
+      }
+      @keyframes waveDrift2 {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        50% {
+          transform: translateX(12px);
+        }
+      }
+      /* lesson eyebrow — drifts in sympathy with the wave above it */
+      .lesson-eyebrow {
+        display: inline-block;
+        animation:
+          lessonEnter 1200ms var(--ease) both,
+          lessonDrift 14s ease-in-out 1200ms infinite;
+        will-change: transform, opacity;
+      }
+      .lesson-eyebrow .lesson-num {
+        display: inline-block;
+        margin-left: 0.35em;
+        animation: lessonNumDrift 9s ease-in-out infinite;
+        color: var(--accent-deep);
+      }
+      @keyframes lessonEnter {
+        0% {
+          opacity: 0;
+          transform: translateX(14px);
+          filter: blur(2px);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+          filter: blur(0);
+        }
+      }
+      @keyframes lessonDrift {
+        0%,
+        100% {
+          transform: translateX(-3px);
+          opacity: 0.9;
+        }
+        50% {
+          transform: translateX(3px);
+          opacity: 1;
+        }
+      }
+      @keyframes lessonNumDrift {
+        0%,
+        100% {
+          transform: translateX(2px);
+        }
+        50% {
+          transform: translateX(-2px);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .breathe,
+        .breathe-small,
+        .wave-motif,
+        .wave-path-1,
+        .wave-path-2,
+        .lesson-eyebrow,
+        .lesson-eyebrow .lesson-num {
+          animation: none;
+        }
+      }
+
+      /* typography inside island */
+      .eyebrow {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+      }
+      .q-serif {
+        font-family: "Playfair Display", serif;
+        font-weight: 500;
+        line-height: 1.22;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+      }
+      .h-intro {
+        font-size: 34px;
+      }
+      .h-question {
+        font-size: 27px;
+      }
+      .h-result {
+        font-size: 30px;
+      }
+
+      .body-soft {
+        font-family: "Inter", sans-serif;
+        font-size: 15px;
+        line-height: 1.65;
+        color: var(--ink-soft);
+        letter-spacing: 0.005em;
+      }
+
+      /* answer buttons */
+      .answers {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 28px;
+      }
+      .answer {
+        appearance: none;
+        text-align: left;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.025);
+        border: 1px solid transparent;
+        padding: 18px 22px;
+        border-radius: 18px;
+        font-family: "Inter", sans-serif;
+        font-size: 15.5px;
+        color: var(--ink);
+        cursor: pointer;
+        font-weight: 450;
+        line-height: 1.45;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        transition:
+          background var(--t) var(--ease),
+          color var(--t) var(--ease),
+          border-color var(--t) var(--ease),
+          transform var(--t) var(--ease),
+          opacity var(--t) var(--ease);
+        position: relative;
+        overflow: hidden;
+      }
+      .dusk .answer {
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .answer:hover:not(:disabled) {
+        background: rgba(0, 0, 0, 0.045);
+      }
+      .dusk .answer:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.055);
+      }
+      .answer:disabled {
+        cursor: default;
+      }
+      .answer .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--ink-mute);
+        opacity: 0.35;
+        flex-shrink: 0;
+        transition: all var(--t) var(--ease);
+      }
+      .answer.selected-correct {
+        background: var(--accent-soft);
+        color: var(--ink);
+        border-color: color-mix(in oklab, var(--accent) 40%, transparent);
+      }
+      .answer.selected-correct .dot {
+        background: var(--accent-deep);
+        opacity: 1;
+        width: 10px;
+        height: 10px;
+      }
+      .answer.selected-wrong {
+        background: rgba(0, 0, 0, 0.02);
+        color: var(--ink-mute);
+        opacity: 0.55;
+      }
+      .dusk .answer.selected-wrong {
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .answer.reveal-correct {
+        background: color-mix(in oklab, var(--amber) 22%, transparent);
+        color: var(--ink);
+        border-color: color-mix(in oklab, var(--amber) 55%, transparent);
+      }
+      .answer.reveal-correct .dot {
+        background: var(--amber);
+        opacity: 1;
+        width: 10px;
+        height: 10px;
+      }
+      .dusk .answer.reveal-correct {
+        background: color-mix(in oklab, var(--amber) 18%, transparent);
+      }
+
+      /* pill button */
+      .pill {
+        appearance: none;
+        border: 0;
+        cursor: pointer;
+        font-family: "Inter", sans-serif;
+        font-size: 14.5px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        padding: 16px 34px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fbf8f2;
+        transition:
+          background var(--t) var(--ease),
+          transform var(--t) var(--ease),
+          box-shadow var(--t) var(--ease);
+        box-shadow: 0 2px 0
+          color-mix(in oklab, var(--accent-deep) 40%, transparent);
+      }
+      .dusk .pill {
+        color: #1a1416;
+      }
+      .pill:hover {
+        background: var(--accent-deep);
+      }
+      .pill.ghost {
+        background: transparent;
+        color: var(--ink-soft);
+        box-shadow: inset 0 0 0 1px var(--rule);
+      }
+      .pill.ghost:hover {
+        background: rgba(0, 0, 0, 0.03);
+        color: var(--ink);
+      }
+      .dusk .pill.ghost:hover {
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      /* progress dots */
+      .progress {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 36px;
+      }
+      .progress .pd {
+        width: 28px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--rule);
+        transition:
+          background 800ms var(--ease),
+          width 800ms var(--ease);
+      }
+      .progress .pd.done {
+        background: var(--accent);
+      }
+      .progress .pd.cur {
+        background: var(--accent);
+        width: 40px;
+      }
+
+      /* fade / blur transitions */
+      .fade-wrap {
+        position: relative;
+      }
+      .fade-enter {
+        opacity: 0;
+        filter: blur(4px);
+        transform: translateY(6px);
+      }
+      .fade-active {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+        transition:
+          opacity var(--t) var(--ease),
+          filter var(--t) var(--ease),
+          transform var(--t) var(--ease);
+      }
+      .fade-exit {
+        opacity: 0;
+        filter: blur(4px);
+        transform: translateY(-4px);
+        transition:
+          opacity 400ms var(--ease),
+          filter 400ms var(--ease),
+          transform 400ms var(--ease);
+      }
+
+      /* gentle microcopy */
+      .microcopy {
+        margin-top: 22px;
+        padding: 16px 20px;
+        border-radius: 14px;
+        background: color-mix(in oklab, var(--amber) 10%, transparent);
+        color: var(--ink-soft);
+        font-size: 14.5px;
+        line-height: 1.6;
+        font-style: italic;
+        border-left: 2px solid
+          color-mix(in oklab, var(--amber) 60%, transparent);
+      }
+      .dusk .microcopy {
+        background: color-mix(in oklab, var(--amber) 12%, transparent);
+      }
+
+      /* result ceremony */
+      .result-stack {
+        text-align: center;
+      }
+      .result-big-breathe {
+        margin: 8px auto 28px;
+      }
+      .result-practice-name {
+        font-family: "Playfair Display", serif;
+        font-size: 38px;
+        line-height: 1.1;
+        letter-spacing: -0.015em;
+        font-weight: 500;
+        color: var(--ink);
+        margin: 18px 0 10px;
+      }
+      .result-practice-italic {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        color: var(--accent-deep);
+      }
+      .result-meta {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+        display: inline-flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .result-meta .sep {
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--ink-mute);
+        opacity: 0.4;
+      }
+      .result-desc {
+        margin: 22px auto 34px;
+        max-width: 420px;
+      }
+      .result-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* subtle corner flourish */
+      .flourish {
+        position: absolute;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+        opacity: 0.6;
+      }
+      .flourish.tl {
+        top: 22px;
+        left: 26px;
+      }
+      .flourish.br {
+        bottom: 22px;
+        right: 26px;
+      }
+
+      /* ------- Host page mock ------- */
+      .host-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 28px 48px;
+        border-bottom: 1px solid var(--rule);
+        font-family: "Playfair Display", serif;
+      }
+      .host-nav .brand {
+        font-size: 22px;
+        letter-spacing: 0.01em;
+        color: var(--ink);
+      }
+      .host-nav .links {
+        display: flex;
+        gap: 32px;
+        font-family: "Inter", sans-serif;
+        font-size: 14px;
+        color: var(--ink-soft);
+      }
+      .host-hero {
+        padding: 96px 48px 40px;
+        max-width: 1040px;
+        margin: 0 auto;
+        text-align: center;
+      }
+      .host-hero .eyebrow {
+        display: block;
+        margin-bottom: 18px;
+        color: var(--accent-deep);
+      }
+      .host-hero h1 {
+        font-family: "Playfair Display", serif;
+        font-weight: 500;
+        font-size: 62px;
+        line-height: 1.08;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin: 0 0 22px;
+        text-wrap: balance;
+      }
+      .host-hero h1 em {
+        font-style: italic;
+        color: var(--accent-deep);
+        font-weight: 400;
+      }
+      .host-hero .lede {
+        font-size: 18px;
+        line-height: 1.65;
+        color: var(--ink-soft);
+        max-width: 620px;
+        margin: 0 auto;
+      }
+      .host-divider {
+        max-width: 1040px;
+        margin: 60px auto 0;
+        padding: 0 48px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .host-divider .line {
+        flex: 1;
+        height: 1px;
+        background: var(--rule);
+      }
+      .host-divider .lbl {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+      }
+      .host-island-frame {
+        padding: 56px 24px 80px;
+        display: flex;
+        justify-content: center;
+      }
+      .host-footer-lead {
+        padding: 40px 48px 24px;
+        max-width: 720px;
+        margin: 0 auto;
+        text-align: center;
+      }
+      .host-footer-lead p {
+        font-family: "Playfair Display", serif;
+        font-style: italic;
+        font-size: 20px;
+        line-height: 1.5;
+        color: var(--ink-soft);
+      }
+      .host-footer {
+        padding: 40px 48px 60px;
+        border-top: 1px solid var(--rule);
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: "Inter", sans-serif;
+        font-size: 13px;
+        color: var(--ink-mute);
+      }
+
+      /* annotation in standalone */
+      .annot {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #847668;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-top: 28px;
+        text-align: center;
+      }
+      .annot .tick {
+        color: var(--accent);
+      }
+
+      /* ------- Tweaks panel ------- */
+      .tweaks {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 50;
+        width: 260px;
+        background: rgba(20, 15, 13, 0.88);
+        color: #e6dcce;
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 16px 16px 14px;
+        font-family: "Inter", sans-serif;
+        box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.6);
+      }
+      .tweaks h4 {
+        margin: 0 0 12px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #c9bba9;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .tweaks .row {
+        margin-bottom: 14px;
+      }
+      .tweaks .row:last-child {
+        margin-bottom: 0;
+      }
+      .tweaks .label {
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #9a8e80;
+        margin-bottom: 8px;
+        font-family: "JetBrains Mono", monospace;
+      }
+      .tweaks .swatches {
+        display: flex;
+        gap: 8px;
+      }
+      .tweaks .sw {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        cursor: pointer;
+        border: 1.5px solid transparent;
+        transition:
+          border-color 0.2s ease,
+          transform 0.2s ease;
+      }
+      .tweaks .sw.on {
+        border-color: #eadfd2;
+      }
+      .tweaks .chips {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .tweaks .chip {
+        appearance: none;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: #d6cabb;
+        padding: 7px 10px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 11.5px;
+        font-family: "Inter", sans-serif;
+        transition: all 0.2s ease;
+      }
+      .tweaks .chip.on {
+        background: #eadfd2;
+        color: #20191b;
+        border-color: transparent;
+      }
+      .tweaks .switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12.5px;
+        color: #d6cabb;
+      }
+      .tweaks input[type="range"] {
+        width: 100%;
+        accent-color: #eadfd2;
+      }
+      .tweaks .range-val {
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        color: #9a8e80;
+      }
+      .tweaks-close {
+        appearance: none;
+        background: transparent;
+        border: 0;
+        color: #9a8e80;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0;
+      }
+      .tweaks-toggle {
+        position: fixed;
+        right: 18px;
+        bottom: 18px;
+        z-index: 49;
+        appearance: none;
+        background: rgba(20, 15, 13, 0.88);
+        color: #e6dcce;
+        backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 999px;
+        padding: 10px 16px;
+        font-family: "JetBrains Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      @media (max-width: 720px) {
+        .host-nav {
+          padding: 20px 24px;
+        }
+        .host-nav .links {
+          display: none;
+        }
+        .host-hero {
+          padding: 60px 24px 24px;
+        }
+        .host-hero h1 {
+          font-size: 40px;
+        }
+        .island {
+          padding: 40px 26px 36px;
+          border-radius: 26px;
+        }
+        .h-intro {
+          font-size: 26px;
+        }
+        .h-question {
+          font-size: 22px;
+        }
+        .h-result {
+          font-size: 24px;
+        }
+        .result-practice-name {
+          font-size: 30px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-presets="typescript,react">
+      // @ts-nocheck
+
+      /* =========================================================
+         TWEAKABLE DEFAULTS — host rewrites this JSON on save
+         ========================================================= */
+      const TWEAK_DEFAULTS: Tweaks = /*EDITMODE-BEGIN*/{
+        "accent": "sage",
+        "motif": "wave",
+        "dusk": false,
+        "transition": 500,
+        "view": "host"
+      }/*EDITMODE-END*/;
+
+      const { useState, useEffect, useRef, useMemo } = React;
+
+      /* =========================================================
+         TYPES — written before implementation
+         ========================================================= */
+      type Phase = 'intro' | 'question' | 'result';
+      type AccentId = 'sage' | 'lavender' | 'dawn';
+      type MotifKind = 'orb' | 'rings' | 'stone' | 'wave' | 'lotus';
+      type ViewMode = 'host' | 'standalone';
+      type FadeState = 'in' | 'out';
+
+      interface QuizOption { text: string; correct: boolean; }
+      interface Question {
+        eyebrow: string;
+        prompt: string;
+        options: QuizOption[];
+        gentle: string;
+      }
+      interface Practice {
+        name: string;
+        italic: string;
+        duration: string;
+        teacher: string;
+        description: string;
+      }
+      interface Lesson {
+        id: number;        // 1-indexed; matches the `lesson` prop
+        topic: string;     // e.g. "Grounding and Presence" — surfaces in the corner flourish
+        questions: Question[];
+        practice: Practice;
+      }
+      interface Tweaks {
+        accent: AccentId;
+        motif: MotifKind;
+        dusk: boolean;
+        transition: number;
+        view: ViewMode;
+      }
+      interface SavedProgress {
+        v: 1;
+        lesson: number;
+        phase: Phase;
+        qIdx: number;
+        score: number;
+        ts: number;
+      }
+
+      /* =========================================================
+         PERSISTENCE — quietly save place between visits
+         ========================================================= */
+      const STORAGE_KEY = 'meditation-quiz:v1';
+
+      const loadProgress = () => {
+        try {
+          const raw = window.localStorage.getItem(STORAGE_KEY);
+          if (!raw) return null;
+          const parsed = JSON.parse(raw);
+          if (parsed?.v !== 1) return null;
+          return parsed;
+        } catch {
+          // Private mode / disabled storage — degrade silently, the quiz still works.
+          return null;
+        }
+      };
+
+      const saveProgress = (data) => {
+        try {
+          const payload = { v: 1, ts: Date.now(), ...data };
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+          /* see loadProgress — silent by design */
+        }
+      };
+
+      const clearProgress = () => {
+        try { window.localStorage.removeItem(STORAGE_KEY); } catch { /* silent */ }
+      };
+
+      /* =========================================================
+         CONTENT — three lessons, ordered for pedagogical arc
+         (foundational/embodied → conceptual → relational)
+         Source: quiz_*.md handoff files from the curriculum team.
+         ========================================================= */
+      const LESSONS = [
+        {
+          id: 1,
+          topic: "Grounding and Presence",
+          practice: {
+            name: "Returning to the Breath",
+            italic: "a grounding practice",
+            duration: "8 minutes",
+            teacher: "with Amara",
+            description: "A quiet sit that meets the mind where it is. No effort to change anything — only the gentle, repeated noticing that is at the heart of every tradition you've studied.",
+          },
+          questions: [
+            {
+              eyebrow: "On physical sensation",
+              prompt: "When feeling ungrounded or swept away by thought, where is it often most helpful to direct your attention?",
+              options: [
+                { text: "To the physical sensation of the feet resting on the floor or the body in the chair.", correct: true },
+                { text: "To analyzing the thoughts that are making you feel ungrounded.", correct: false },
+                { text: "To visualizing a complex geometric shape in your mind.", correct: false },
+                { text: "To planning out the rest of your day to regain control.", correct: false },
+                { text: "To remembering a time when you felt perfectly calm.", correct: false },
+              ],
+              gentle: "The body is always in the present moment. Noticing physical contact is a direct anchor back to the \u201Cnow\u201D when the mind has traveled elsewhere.",
+            },
+            {
+              eyebrow: "On the present moment",
+              prompt: "What does it mean to \u201Cbe present\u201D?",
+              options: [
+                { text: "To completely empty the mind of all thoughts and feelings.", correct: false },
+                { text: "To force yourself to only think positive, uplifting thoughts.", correct: false },
+                { text: "To gently acknowledge and experience whatever is happening right now, without needing to change it.", correct: true },
+                { text: "To ignore the past and the future entirely in your daily life.", correct: false },
+                { text: "To be constantly analyzing your current surroundings.", correct: false },
+              ],
+              gentle: "Presence is not an empty mind, but a welcoming awareness. It is the simple, quiet knowing of what is here.",
+            },
+            {
+              eyebrow: "On distraction",
+              prompt: "You realize you've been lost in a daydream for several minutes during your sit. What is the most grounding action?",
+              options: [
+                { text: "Scold yourself for losing focus to ensure it doesn't happen again.", correct: false },
+                { text: "Try to forcefully push the daydream out of your mind.", correct: false },
+                { text: "Instantly stand up and walk around to shake it off.", correct: false },
+                { text: "Simply note that thinking has occurred, and warmly return to your anchor.", correct: true },
+                { text: "Follow the daydream to its logical conclusion before returning.", correct: false },
+              ],
+              gentle: "Waking up from a thought is the moment of practice. The return itself is the muscle we are building, and it requires only warmth, not tension.",
+            },
+            {
+              eyebrow: "On bodily tension",
+              prompt: "You notice a tight, uncomfortable sensation in your shoulders while sitting. How do you respond?",
+              options: [
+                { text: "Immediately try to stretch it out and fix the posture.", correct: false },
+                { text: "Tell yourself the pain isn't real and try to ignore it.", correct: false },
+                { text: "Decide that meditation is causing the pain and stop immediately.", correct: false },
+                { text: "Focus all your willpower on forcing the muscles to relax.", correct: false },
+                { text: "Soften your awareness around the tension, allowing it to be there without adding resistance.", correct: true },
+              ],
+              gentle: "Often, our resistance to discomfort creates more tension than the discomfort itself. Meeting it with a soft awareness can be profoundly releasing.",
+            },
+            {
+              eyebrow: "On environmental noise",
+              prompt: "A loud, unexpected sound interrupts your quiet space. What is the practice here?",
+              options: [
+                { text: "Become frustrated that your peaceful environment was ruined.", correct: false },
+                { text: "Let the sound become the new object of your meditation for a moment, noticing its arising and passing.", correct: true },
+                { text: "Block your ears or try to find a completely silent room.", correct: false },
+                { text: "Try to identify exactly what made the sound and why.", correct: false },
+                { text: "Stop the meditation, as the conditions are no longer perfect.", correct: false },
+              ],
+              gentle: "The world will always have sound. When we stop demanding silence, every sound becomes a bell ringing us back to the present.",
+            },
+            {
+              eyebrow: "On the feeling of weight",
+              prompt: "Why is noticing gravity often used as a grounding tool?",
+              options: [
+                { text: "Because it helps you fall asleep faster.", correct: false },
+                { text: "Because it requires intense intellectual focus to understand.", correct: false },
+                { text: "Because the downward pull is a constant, steady, and reliable physical reality you can always tune into.", correct: true },
+                { text: "Because it distracts you from emotional pain by focusing on physical pain.", correct: false },
+                { text: "Because it is a metaphor for carrying heavy burdens.", correct: false },
+              ],
+              gentle: "Gravity asks nothing of us. Noticing the chair holding you up is a gentle reminder that, right now, you are supported and you do not need to hold everything together.",
+            },
+          ],
+        },
+        {
+          id: 2,
+          topic: "Impermanence and Letting Go",
+          practice: {
+            name: "Watching the Tide",
+            italic: "a letting-go practice",
+            duration: "10 minutes",
+            teacher: "with Joren",
+            description: "A guided sit on the rising and falling of all things. We rest at the shoreline of experience and watch each sensation, thought, and feeling arrive and dissolve in its own time.",
+          },
+          questions: [
+            {
+              eyebrow: "On changing states",
+              prompt: "You experience a profound moment of peace during practice, but it fades the next day. What is the most skillful response?",
+              options: [
+                { text: "Try desperately to recreate the exact conditions of that sit.", correct: false },
+                { text: "Feel like a failure because you couldn't hold onto the peace.", correct: false },
+                { text: "Conclude that the peaceful moment was fake or a trick of the mind.", correct: false },
+                { text: "Notice the passing of the peace, recognizing that all states\u2014even beautiful ones\u2014arise and fall.", correct: true },
+                { text: "Stop meditating until you feel guaranteed to experience that peace again.", correct: false },
+              ],
+              gentle: "The practice is not about building a permanent house of peace, but learning to sit comfortably in the weather, knowing every storm and every sunny day will pass.",
+            },
+            {
+              eyebrow: "On letting go",
+              prompt: "What does \u201Cletting go\u201D actually mean in the context of contemplative practice?",
+              options: [
+                { text: "Apathetically giving up on your goals and desires.", correct: false },
+                { text: "Forcing yourself to stop caring about the people you love.", correct: false },
+                { text: "Physically throwing away your possessions.", correct: false },
+                { text: "Releasing the tight mental grip on how things \u201Cshould\u201D be, and allowing them to be as they are.", correct: true },
+                { text: "Denying that you feel any pain or attachment.", correct: false },
+              ],
+              gentle: "Letting go is not pushing away. It is simply opening the hand. It is the relaxing of the demand that this moment be anything other than what it is.",
+            },
+            {
+              eyebrow: "On grief and loss",
+              prompt: "How does an understanding of impermanence support us in times of grief?",
+              options: [
+                { text: "It makes the grief disappear instantly because we know it was inevitable.", correct: false },
+                { text: "It tells us that our feelings don't matter because nothing lasts anyway.", correct: false },
+                { text: "It provides a spacious container for the pain, reminding us that even this heavy sorrow is part of the moving river of life.", correct: true },
+                { text: "It allows us to bypass the sadness and jump straight to acceptance.", correct: false },
+                { text: "It proves that we shouldn't have loved the person or thing so much in the first place.", correct: false },
+              ],
+              gentle: "Impermanence does not make loss hurt less, but it removes the shock that things have changed. It allows us to mourn with grace, knowing that change is the very nature of existence.",
+            },
+            {
+              eyebrow: "On clinging to joy",
+              prompt: "Why can holding tightly to a positive experience cause suffering?",
+              options: [
+                { text: "Because positive experiences are inherently bad for us.", correct: false },
+                { text: "Because it makes other people jealous.", correct: false },
+                { text: "Because fighting to keep something that must eventually change creates immediate tension and fear of loss.", correct: true },
+                { text: "Because you don't deserve to be happy for too long.", correct: false },
+                { text: "Because it drains your physical energy to be happy.", correct: false },
+              ],
+              gentle: "When we try to freeze a beautiful moment, we crush it. Joy is a bird that lands on the windowsill; we can enjoy its song, but we suffer if we try to trap it in a cage.",
+            },
+            {
+              eyebrow: "On the breath as a teacher",
+              prompt: "How does the simple act of breathing teach us about impermanence?",
+              options: [
+                { text: "By showing us how long we can hold our breath.", correct: false },
+                { text: "By demonstrating that breathing is a conscious choice.", correct: false },
+                { text: "By showing that we must exhale what we have just inhaled to survive; we cannot hold onto a single breath forever.", correct: true },
+                { text: "By proving that our lung capacity decreases over time.", correct: false },
+                { text: "By distracting us from the passage of time.", correct: false },
+              ],
+              gentle: "The breath is the rhythm of life itself: taking in, letting go, taking in, letting go. Holding your breath brings panic; exhaling brings release.",
+            },
+            {
+              eyebrow: "On aging and the body",
+              prompt: "How do we skillfully relate to the changing, aging nature of our physical bodies?",
+              options: [
+                { text: "By obsessively trying to look and feel young forever.", correct: false },
+                { text: "By ignoring the body completely and living only in the mind.", correct: false },
+                { text: "By feeling resentful and betrayed by the body's decline.", correct: false },
+                { text: "By turning toward the changes with tenderness, honoring the body for its service rather than demanding it remain static.", correct: true },
+                { text: "By constantly complaining about physical aches to anyone who will listen.", correct: false },
+              ],
+              gentle: "The body is a landscape that changes over time. We can either fight the changing seasons, or we can learn to appreciate the unique beauty and quiet wisdom of autumn and winter.",
+            },
+          ],
+        },
+        {
+          id: 3,
+          topic: "Compassion and Loving-Kindness",
+          practice: {
+            name: "A Soft Hand for the Heart",
+            italic: "a metta practice",
+            duration: "12 minutes",
+            teacher: "with Tova",
+            description: "A guided loving-kindness sit that begins with the self and slowly widens outward. We plant phrases of warmth like seeds, trusting that the watering itself is the practice, whether or not we feel the bloom today.",
+          },
+          questions: [
+            {
+              eyebrow: "On self-compassion",
+              prompt: "Why do many traditions suggest offering loving-kindness to oneself before offering it to others?",
+              options: [
+                { text: "Because it is selfish to think of others before yourself.", correct: false },
+                { text: "Because extending genuine warmth to others is difficult if the heart is closed or harsh toward oneself.", correct: true },
+                { text: "Because you are the only person who truly matters in your practice.", correct: false },
+                { text: "Because it is the easiest step and builds confidence quickly.", correct: false },
+                { text: "Because offering it to others first will deplete your energy.", correct: false },
+              ],
+              gentle: "The heart is a vessel. We cannot pour out what we have not allowed ourselves to receive. Kindness to the self is the wellspring of compassion for the world.",
+            },
+            {
+              eyebrow: "On difficult people",
+              prompt: "When offering metta to someone who has caused frustration, what is the intention?",
+              options: [
+                { text: "To excuse or justify their harmful behavior.", correct: false },
+                { text: "To force yourself to feel deep affection for them.", correct: false },
+                { text: "To magically change their personality or actions.", correct: false },
+                { text: "To untangle your own heart from the pain of resentment, recognizing their shared human vulnerability.", correct: true },
+                { text: "To prove to yourself that you are a better, more forgiving person than they are.", correct: false },
+              ],
+              gentle: "Compassion for a difficult person is not condoning their actions. It is a boundary we set against our own bitterness, allowing us to see clearly without the fog of hatred.",
+            },
+            {
+              eyebrow: "On feelings of emptiness",
+              prompt: "You repeat the phrases of loving-kindness (\u201CMay I be happy...\u201D), but feel completely numb or empty. What is true?",
+              options: [
+                { text: "You are doing the practice incorrectly and should stop.", correct: false },
+                { text: "You are incapable of feeling compassion.", correct: false },
+                { text: "The practice is still working; you are planting seeds, even if you cannot feel the weather today.", correct: true },
+                { text: "You must force an emotion to arise, or the words are meaningless.", correct: false },
+                { text: "It means you need to change the phrases to something more poetic.", correct: false },
+              ],
+              gentle: "The intention is the practice, not the emotion. Sometimes the ground is dry, but the watering itself is an act of faith that softening will eventually come.",
+            },
+            {
+              eyebrow: "On the nature of compassion",
+              prompt: "How does compassion differ from pity?",
+              options: [
+                { text: "Pity is stronger and more effective than compassion.", correct: false },
+                { text: "Compassion only focuses on the positive, while pity focuses on the negative.", correct: false },
+                { text: "Pity creates distance and a sense of superiority, while compassion recognizes our shared, equal humanity in suffering.", correct: true },
+                { text: "There is no difference; they are the exact same feeling.", correct: false },
+                { text: "Pity requires action, while compassion is only a passive feeling.", correct: false },
+              ],
+              gentle: "Pity looks down from above. Compassion sits beside. It is the quiet acknowledgment that \u201Cyour pain could be my pain.\u201D",
+            },
+            {
+              eyebrow: "On daily interactions",
+              prompt: "How can the spirit of loving-kindness be practiced outside of formal sitting?",
+              options: [
+                { text: "By constantly telling everyone how much you love them, even strangers.", correct: false },
+                { text: "By never disagreeing with anyone or causing any conflict.", correct: false },
+                { text: "By ignoring your own needs to constantly serve others.", correct: false },
+                { text: "By offering silent wishes of well-being to people you pass in the street or encounter in daily tasks.", correct: true },
+                { text: "By demanding that everyone treat you with perfect kindness in return.", correct: false },
+              ],
+              gentle: "A silent \u201Cmay you be at ease\u201D offered to a cashier or a driver in traffic is a profound, invisible thread connecting you to the world.",
+            },
+            {
+              eyebrow: "On boundaries",
+              prompt: "Does practicing compassion mean we must accept harmful behavior from others?",
+              options: [
+                { text: "Yes, true compassion means having no boundaries at all.", correct: false },
+                { text: "Yes, because setting boundaries is a form of anger and resistance.", correct: false },
+                { text: "No, fierce compassion can say a clear \u201Cno\u201D to harm, acting to protect oneself or others while still wishing for the perpetrator's ultimate healing.", correct: true },
+                { text: "No, but only if you have first tried to change the other person's behavior.", correct: false },
+                { text: "Yes, because avoiding conflict is the highest goal of the practice.", correct: false },
+              ],
+              gentle: "A boundary can be an act of deep love. We can refuse to participate in harm while still holding a quiet hope that the one causing harm finds their way to peace.",
+            },
+          ],
+        },
+      ];
+
+      // English number-words for the intro copy ("Six gentle questions...").
+      // Indexed 1..N; index 0 unused so the lookup matches `questions.length` directly.
+      const NUMBER_WORDS = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+      const numberWord = (n) => NUMBER_WORDS[n] ?? String(n);
+
+      // 2-digit pad for the "0N / 03" corner flourish.
+      const pad2 = (n) => String(n).padStart(2, '0');
+
+      /* =========================================================
+         BREATHING MOTIFS
+         ========================================================= */
+      const Motif = ({ kind, size = 88, small = false }) => {
+        const s = size;
+        const cx = s/2, cy = s/2;
+        const cls = small ? "breathe-small" : "breathe";
+        if (kind === "orb") {
+          return (
+            <svg className={cls} width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+              <defs>
+                <radialGradient id="g1" cx="50%" cy="45%" r="55%">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity=".55"/>
+                  <stop offset="65%" stopColor="currentColor" stopOpacity=".15"/>
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0"/>
+                </radialGradient>
+              </defs>
+              <circle cx={cx} cy={cy} r={s*0.42} fill="url(#g1)" />
+              <circle cx={cx} cy={cy} r={s*0.26} fill="currentColor" fillOpacity=".35" />
+              <circle cx={cx} cy={cy} r={s*0.12} fill="currentColor" fillOpacity=".85" />
+            </svg>
+          );
+        }
+        if (kind === "rings") {
+          return (
+            <svg className={cls} width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+              {[0.46, 0.36, 0.26, 0.16].map((r, i) => (
+                <circle key={i} cx={cx} cy={cy} r={s*r}
+                  fill="none" stroke="currentColor"
+                  strokeOpacity={0.12 + i*0.12} strokeWidth={i === 3 ? 1.2 : 0.9} />
+              ))}
+              <circle cx={cx} cy={cy} r={s*0.04} fill="currentColor" fillOpacity=".8" />
+            </svg>
+          );
+        }
+        if (kind === "stone") {
+          // soft asymmetric stone-ish ellipse, hand-drawn feel
+          return (
+            <svg className={cls} width={s} height={s*0.72} viewBox={`0 0 ${s} ${s*0.72}`} aria-hidden>
+              <defs>
+                <radialGradient id="g2" cx="45%" cy="40%" r="65%">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity=".5"/>
+                  <stop offset="100%" stopColor="currentColor" stopOpacity=".15"/>
+                </radialGradient>
+              </defs>
+              <path d={`M ${s*0.12} ${s*0.38}
+                        C ${s*0.06} ${s*0.14}, ${s*0.42} ${s*0.02}, ${s*0.68} ${s*0.08}
+                        C ${s*0.98} ${s*0.16}, ${s*0.96} ${s*0.56}, ${s*0.72} ${s*0.64}
+                        C ${s*0.42} ${s*0.74}, ${s*0.18} ${s*0.62}, ${s*0.12} ${s*0.38} Z`}
+                    fill="url(#g2)" />
+              <path d={`M ${s*0.22} ${s*0.30}
+                        C ${s*0.34} ${s*0.22}, ${s*0.56} ${s*0.22}, ${s*0.66} ${s*0.28}`}
+                    stroke="currentColor" strokeOpacity=".5" strokeWidth="1" fill="none" strokeLinecap="round" />
+            </svg>
+          );
+        }
+        if (kind === "wave") {
+          const W = s*1.6, H = s*0.55;
+          return (
+            <svg className={"wave-motif"} width={W} height={H} viewBox={`0 0 ${W} ${H}`} aria-hidden>
+              <g className="wave-path-1">
+                <path d={`M ${-W*0.2} ${H*0.55}
+                          Q ${W*0.15} ${H*0.20}, ${W*0.40} ${H*0.55}
+                          T ${W*0.90} ${H*0.55}
+                          T ${W*1.40} ${H*0.55}`}
+                      stroke="currentColor" strokeOpacity=".75" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+              </g>
+              <g className="wave-path-2">
+                <path d={`M ${-W*0.2} ${H*0.70}
+                          Q ${W*0.15} ${H*0.40}, ${W*0.40} ${H*0.70}
+                          T ${W*0.90} ${H*0.70}
+                          T ${W*1.40} ${H*0.70}`}
+                      stroke="currentColor" strokeOpacity=".28" strokeWidth="1" fill="none" strokeLinecap="round" />
+              </g>
+            </svg>
+          );
+        }
+        // lotus-ish minimalist
+        return (
+          <svg className={cls} width={s} height={s} viewBox={`0 0 ${s} ${s}`} aria-hidden>
+            {[0, -45, 45, -90, 90].map((rot, i) => (
+              <ellipse key={i} cx={cx} cy={cy - s*0.12} rx={s*0.08} ry={s*0.22}
+                fill="currentColor" fillOpacity={0.2 + (i === 0 ? 0.2 : 0)}
+                transform={`rotate(${rot} ${cx} ${cy})`} />
+            ))}
+            <circle cx={cx} cy={cy + s*0.1} r={s*0.06} fill="currentColor" fillOpacity=".6" />
+          </svg>
+        );
+      };
+
+      /* =========================================================
+         PROGRESS (soft dots per brief)
+         ========================================================= */
+      const Progress = ({ total, current }) => (
+        <div className="progress" aria-label={`Question ${current+1} of ${total}`}>
+          {Array.from({ length: total }).map((_, i) => (
+            <div key={i} className={"pd " + (i < current ? "done" : i === current ? "cur" : "")} />
+          ))}
+        </div>
+      );
+
+      /* =========================================================
+         ISLAND — the island itself
+         ========================================================= */
+      const Island = ({ motif, accent, lesson = 1 }) => {
+        const [phase, setPhase] = useState("intro");
+        const [qIdx, setQIdx] = useState(0);
+        const [picked, setPicked] = useState(null);
+        const [revealed, setRevealed] = useState(false);
+        const [score, setScore] = useState(0);
+        const [fadeKey, setFadeKey] = useState(0);
+        const [fadeState, setFadeState] = useState("in");
+        // Saved-progress is read once on mount; intro phase exposes Continue/Begin anew when present.
+        const [savedProgress, setSavedProgress] = useState(() => loadProgress());
+
+        // Derive the active lesson from the prop. Fall back to the first lesson if an unknown id is passed.
+        const currentLesson = LESSONS.find(l => l.id === lesson) ?? LESSONS[0];
+        const questions = currentLesson.questions;
+        const practice = currentLesson.practice;
+        const totalQuestions = questions.length;
+
+        const q = questions[qIdx];
+
+        // Persist whenever the user makes meaningful progress. Intro-with-no-progress is not "progress".
+        useEffect(() => {
+          if (phase === "intro") return;
+          saveProgress({ lesson, phase, qIdx, score });
+        }, [phase, qIdx, score, lesson]);
+
+        const swapPhase = (mutate) => {
+          setFadeState("out");
+          setTimeout(() => {
+            mutate();
+            setFadeKey(k => k + 1);
+            setFadeState("in");
+          }, 420);
+        };
+
+        const begin = () => {
+          // Clean slate — discard any stale saved progress from a prior, abandoned attempt.
+          clearProgress();
+          setSavedProgress(null);
+          swapPhase(() => {
+            setPhase("question");
+            setQIdx(0); setPicked(null); setRevealed(false); setScore(0);
+          });
+        };
+
+        const continueQuiz = () => {
+          if (!savedProgress) return;
+          swapPhase(() => {
+            setPhase(savedProgress.phase);
+            setQIdx(savedProgress.qIdx);
+            setScore(savedProgress.score);
+            setPicked(null); setRevealed(false);
+          });
+        };
+
+        const beginAnew = () => {
+          clearProgress();
+          setSavedProgress(null);
+          swapPhase(() => {
+            setPhase("intro");
+            setQIdx(0); setPicked(null); setRevealed(false); setScore(0);
+          });
+        };
+
+        const pick = (i) => {
+          if (picked !== null || !q) return;
+          setPicked(i);
+          if (q.options[i].correct) setScore(s => s + 1);
+          setTimeout(() => setRevealed(true), 420);
+        };
+
+        const next = () => {
+          swapPhase(() => {
+            if (qIdx + 1 >= totalQuestions) {
+              setPhase("result");
+            } else {
+              setQIdx(i => i + 1);
+              setPicked(null); setRevealed(false);
+            }
+          });
+        };
+
+        const restart = () => {
+          swapPhase(() => {
+            setPhase("intro");
+            setQIdx(0); setPicked(null); setRevealed(false); setScore(0);
+          });
+        };
+
+        const correctIdx = q ? q.options.findIndex(o => o.correct) : -1;
+        const hasResumable = savedProgress !== null && savedProgress.phase !== "intro";
+
+        return (
+          <div className="island" role="region" aria-label="Meditation reflection quiz">
+            <div className="flourish tl">A quiet check–in</div>
+            <div className="flourish br">{pad2(currentLesson.id)} / {pad2(LESSONS.length)} · {currentLesson.topic}</div>
+
+            <div key={fadeKey} className={`fade-wrap ${fadeState === "out" ? "fade-exit" : "fade-active"}`}>
+
+              {phase === "intro" && (
+                <div style={{ textAlign: "center" }}>
+                  <div className="breathe-wrap"><Motif kind={motif} size={96} /></div>
+                  <div className="eyebrow" style={{ marginBottom: 14 }}>
+                    {/* key={lesson} retriggers the entrance animation whenever the lesson number changes */}
+                    <span key={lesson} className="lesson-eyebrow">
+                      Lesson<span className="lesson-num">{lesson}</span>
+                    </span>
+                  </div>
+                  <h2 className="q-serif h-intro" style={{ margin: "0 0 18px", textWrap: "balance" }}>
+                    Take a moment.<br/>
+                    <span style={{ fontStyle: "italic", color: "var(--accent-deep)" }}>Return to what you know.</span>
+                  </h2>
+                  <p className="body-soft" style={{ margin: "0 auto 34px", maxWidth: 420 }}>
+                    {numberWord(totalQuestions).replace(/^./, c => c.toUpperCase())} gentle questions to remind you of the practice already living inside you. There is no score, only noticing.
+                  </p>
+                  {hasResumable ? (
+                    <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
+                      <button className="pill" onClick={continueQuiz}>Continue</button>
+                      <button className="pill ghost" onClick={beginAnew}>Begin anew</button>
+                    </div>
+                  ) : (
+                    <button className="pill" onClick={begin}>Begin</button>
+                  )}
+                </div>
+              )}
+
+              {phase === "question" && (
+                <div>
+                  <Progress total={totalQuestions} current={qIdx} />
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 22 }}>
+                    <Motif kind={motif} size={52} small />
+                  </div>
+                  <div className="eyebrow" style={{ textAlign: "center", marginBottom: 14 }}>{q.eyebrow}</div>
+                  <h3 className="q-serif h-question" style={{ textAlign: "center", margin: "0 0 8px", textWrap: "balance" }}>
+                    {q.prompt}
+                  </h3>
+
+                  <div className="answers">
+                    {q.options.map((opt, i) => {
+                      let cls = "answer";
+                      if (picked !== null) {
+                        if (i === picked && opt.correct) cls += " selected-correct";
+                        else if (i === picked && !opt.correct) cls += " selected-wrong";
+                        else if (revealed && i === correctIdx && picked !== correctIdx) cls += " reveal-correct";
+                      }
+                      return (
+                        <button key={i} className={cls} disabled={picked !== null} onClick={() => pick(i)}>
+                          <span className="dot" />
+                          <span style={{ flex: 1 }}>{opt.text}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {revealed && (
+                    <div className="microcopy fade-active" style={{ animation: "none" }}>
+                      {q.gentle}
+                    </div>
+                  )}
+
+                  {revealed && (
+                    <div style={{ display: "flex", justifyContent: "center", marginTop: 26 }}>
+                      <button className="pill" onClick={next}>
+                        {qIdx + 1 >= totalQuestions ? "See your practice" : "Continue"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {phase === "result" && (
+                <div className="result-stack">
+                  <div className="eyebrow" style={{ marginBottom: 10 }}>
+                    {score === totalQuestions
+                      ? `All ${numberWord(totalQuestions)} met with clarity`
+                      : `${score} of ${totalQuestions} met with clarity`}
+                  </div>
+                  <div className="result-big-breathe"><Motif kind={motif} size={132} /></div>
+                  <div className="eyebrow" style={{ color: "var(--accent-deep)" }}>Today's suggested practice</div>
+                  <h3 className="q-serif h-result result-practice-name">
+                    {practice.name.split(" ").slice(0, -2).join(" ")} <span className="result-practice-italic">{practice.name.split(" ").slice(-2).join(" ")}</span>
+                  </h3>
+                  <div className="result-meta">
+                    <span>{practice.duration}</span>
+                    <span className="sep" />
+                    <span>{practice.teacher}</span>
+                    <span className="sep" />
+                    <span>{practice.italic}</span>
+                  </div>
+                  <p className="body-soft result-desc">{practice.description}</p>
+                  <div className="result-actions">
+                    <button className="pill">Begin the practice</button>
+                    <button className="pill ghost" onClick={restart}>Reflect again</button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        );
+      };
+
+      /* =========================================================
+         HOST PAGE MOCK — surrounding Astro site context
+         ========================================================= */
+      const HostPage = ({ children }) => (
+        <>
+          <nav className="host-nav">
+            <div className="brand">still · hours</div>
+            <div className="links">
+              <span>Practices</span>
+              <span>Teachers</span>
+              <span>Courses</span>
+              <span>Journal</span>
+            </div>
+          </nav>
+          <section className="host-hero">
+            <span className="eyebrow">Lesson 07 · Returning</span>
+            <h1>The practice you've been learning <em>is already with you.</em></h1>
+            <p className="lede">
+              This is a companion lesson for students mid-way through the Foundations course. Before you sit today, we invite a small reflection — five questions to help what you've studied settle a little more deeply.
+            </p>
+          </section>
+          <div className="host-divider">
+            <div className="line" />
+            <div className="lbl">A quiet check–in</div>
+            <div className="line" />
+          </div>
+          <div className="host-island-frame">
+            {children}
+          </div>
+          <div className="host-footer-lead">
+            <p>“The bell does not make the silence. It only reminds us it was already here.”</p>
+          </div>
+          <footer className="host-footer">
+            <span>still · hours · 2026</span>
+            <span>a small meditation community</span>
+          </footer>
+        </>
+      );
+
+      /* =========================================================
+         CHROME + TWEAKS
+         ========================================================= */
+      const App = () => {
+        const [tweaks, setTweaks] = useState(TWEAK_DEFAULTS);
+        const [tweaksOpen, setTweaksOpen] = useState(false);
+        const [editMode, setEditMode] = useState(false);
+        // Hardcoded for now — will become a CMS/route param once Gemini's question markdown lands.
+        const lesson = 1;
+
+        // Apply accent + duration to root
+        useEffect(() => {
+          const root = document.documentElement;
+          root.style.setProperty('--accent', `var(--${tweaks.accent})`);
+          root.style.setProperty('--accent-deep', `var(--${tweaks.accent}-deep)`);
+          root.style.setProperty('--accent-soft', `var(--${tweaks.accent}-soft)`);
+          root.style.setProperty('--t', `${tweaks.transition}ms`);
+          if (tweaks.dusk) root.classList.add('dusk'); else root.classList.remove('dusk');
+        }, [tweaks]);
+
+        // Edit-mode protocol
+        useEffect(() => {
+          const onMsg = (e: MessageEvent) => {
+            if (e.data?.type === '__activate_edit_mode') setEditMode(true);
+            if (e.data?.type === '__deactivate_edit_mode') setEditMode(false);
+          };
+          window.addEventListener('message', onMsg);
+          window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+          return () => window.removeEventListener('message', onMsg);
+        }, []);
+
+        function setKey(key, value) {
+          const next = { ...tweaks, [key]: value };
+          setTweaks(next);
+          window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: value } }, '*');
+        }
+
+        return (
+          <>
+            {/* Top chrome: viewing mode toggle */}
+            <div className="chrome">
+              <div className="chrome-label">Island · preview</div>
+              <div className="chrome-toggle">
+                <button className={tweaks.view === "host" ? "on" : ""} onClick={() => setKey("view", "host")}>In page</button>
+                <button className={tweaks.view === "standalone" ? "on" : ""} onClick={() => setKey("view", "standalone")}>Island only</button>
+              </div>
+            </div>
+
+            {tweaks.view === "host" ? (
+              <div className="mode-host">
+                <HostPage><Island motif={tweaks.motif} accent={tweaks.accent} lesson={lesson} /></HostPage>
+              </div>
+            ) : (
+              <div className="mode-standalone">
+                <Island motif={tweaks.motif} accent={tweaks.accent} lesson={lesson} />
+              </div>
+            )}
+
+            {/* Tweaks */}
+            {editMode && !tweaksOpen && (
+              <button className="tweaks-toggle" onClick={() => setTweaksOpen(true)}>◐ Tweaks</button>
+            )}
+            {editMode && tweaksOpen && (
+              <div className="tweaks">
+                <h4>
+                  Tweaks
+                  <button className="tweaks-close" onClick={() => setTweaksOpen(false)} aria-label="Close">×</button>
+                </h4>
+
+                <div className="row">
+                  <div className="label">Accent</div>
+                  <div className="swatches">
+                    {[
+                      { id: "sage", c: "#8AA17A" },
+                      { id: "lavender", c: "#A8A0C5" },
+                      { id: "dawn", c: "#8FA4BE" },
+                    ].map(s => (
+                      <div key={s.id} className={"sw " + (tweaks.accent === s.id ? "on" : "")}
+                           style={{ background: s.c }} onClick={() => setKey("accent", s.id)} title={s.id} />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="label">Breathing motif</div>
+                  <div className="chips">
+                    {["orb", "rings", "stone", "wave", "lotus"].map(k => (
+                      <button key={k} className={"chip " + (tweaks.motif === k ? "on" : "")} onClick={() => setKey("motif", k)}>{k}</button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="switch">
+                    <span>Dusk palette</span>
+                    <button className={"chip " + (tweaks.dusk ? "on" : "")} onClick={() => setKey("dusk", !tweaks.dusk)}>
+                      {tweaks.dusk ? "on" : "off"}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="label">Transition · <span className="range-val">{tweaks.transition}ms</span></div>
+                  <input type="range" min="200" max="1200" step="50"
+                    value={tweaks.transition}
+                    onChange={(e) => setKey("transition", parseInt(e.target.value))} />
+                </div>
+              </div>
+            )}
+          </>
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>
