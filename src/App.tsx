@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Tweaks, AccentId, MotifKind, ViewMode } from './types';
+import type { Tweaks, AccentId, MotifKind } from './types';
 import { HostPage } from './components/HostPage';
 import { Island } from './components/Island';
 
@@ -42,7 +42,7 @@ const TRANSLATIONS = {
 function App() {
   const [tweaks, setTweaks] = useState<Tweaks>(TWEAK_DEFAULTS);
   const [tweaksOpen, setTweaksOpen] = useState(false);
-  const [editMode, setEditMode] = useState(true); // Default to true for this refactor
+  const [editMode] = useState(true); // Default to true for this refactor
   const [lesson, setLesson] = useState(1);
 
   const t = TRANSLATIONS[tweaks.language];

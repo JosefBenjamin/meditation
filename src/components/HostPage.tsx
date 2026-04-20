@@ -1,8 +1,8 @@
-import React, { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
 interface HostPageProps {
   children: ReactNode;
-  language?: 'en' | 'da';
+  language?: "en" | "da";
 }
 
 const TRANSLATIONS = {
@@ -34,7 +34,10 @@ const TRANSLATIONS = {
   },
 };
 
-export const HostPage: React.FC<HostPageProps> = ({ children, language = 'en' }) => {
+export const HostPage: React.FC<HostPageProps> = ({
+  children,
+  language = "en",
+}) => {
   const t = TRANSLATIONS[language];
   return (
     <>
@@ -48,16 +51,17 @@ export const HostPage: React.FC<HostPageProps> = ({ children, language = 'en' })
         </div>
       </nav>
       <section className="host-hero">
-        <h1>{t.hero_h1}<em>{t.hero_em}</em></h1>
+        <h1>
+          {t.hero_h1}
+          <em>{t.hero_em}</em>
+        </h1>
       </section>
       <div className="host-divider">
         <div className="line" />
         <div className="lbl">{t.check_in}</div>
         <div className="line" />
       </div>
-      <div className="host-island-frame">
-        {children}
-      </div>
+      <div className="host-island-frame">{children}</div>
       <div className="host-footer-lead">
         <p>{t.footer_quote}</p>
       </div>
